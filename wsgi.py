@@ -1,3 +1,3 @@
-from flask_qa import creat_app
+from application import create_app
 
 app = create_app()
