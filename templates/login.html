@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Login
+{% endblock %}
+
+{% block content %}
+    <h3>Login or <a href="/register">create an account</a></h3>
+    <form action="/login" method="post">
+        <div class="form-group">
+            <label for="InputUsername">Username</label>
+            <input type="text" class="form-control" id="InputUsername" aria-describedby="emailHelp" placeholder="Enter email">
+            <small id="emailHelp" class="form-text text-muted">We will not use your email for promotional purposes</small>
+        </div>
+        <div class="form-group">
+            <label for="InputPassword">Password</label>
+            <input type="password" class="form-control" id="InputPassword" placeholder="Enter Password">
+        </div>
+        <button type="submit" class="btn btn-primary">Sign in</button>
+    </form>
+{% endblock %}
