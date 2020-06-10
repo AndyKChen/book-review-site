@@ -11,6 +11,9 @@ gunicorn = "*"
 Flask = "*"
 Flask-Session = "*"
 SQLAlchemy = "*"
+flask-sqlalchemy = "*"
+requests = "*"
+passlib = "*"
 
 [requires]
 python_version = "3.7"

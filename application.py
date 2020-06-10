@@ -1,9 +1,12 @@
 import os
+import requests
 
-from flask import Flask, session
+from flask import Flask, session, flash, redirect, render_template, request
 from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
+from passlib.hash import sha256_crypt
+
 
 from helpers import *
 
@@ -35,12 +38,12 @@ def index():
 def login():
     session.clear()
 
-    username = request.form.get("InputUsername")
+    username = request.form.get("email")
 
     if request.method == "POST":
 
-        if not request.form.get("InputUsername"):
-            return render_template("error.html", message="Please provide a username.")
+        if not request.form.get("email"):
+            return render_template("error.html", message="Please provide login username or email.")
 
         elif not request.form.get("InputPassword"):
             return render_template("error.html", message="Please provide a password.")
@@ -61,5 +64,59 @@ def login():
         return render_template("login.html")
 
 
-# @app.route("/search")
-#def search():
+@app.route("/register", methods=["GET","POST"])
+def register():
+
+    session.clear()
+
+    # check that route is reached via "POST"/ user submitted form
+    if request.method == "POST":
+
+        # check user entered a username
+        if not request.form.get("username"):
+            return render_template("error.html", message="Please enter a username.")
+
+        # check for existing user #
+        checkEmail = db.execute("SELECT * from users WHERE email=:email",
+            {"email":request.form.get("email")}).fetchone()
+
+        checkUser = db.execute("SELECT * from users WHERE username=:username",
+            {"username":request.form.get("username")}).fetchone()
+
+        if checkEmail:
+            if checkUser:
+                return render_template("error.html", message="This email and username already exists.")
+
+            else:
+                return render_template("error.html", message="This email already exists")
+
+        elif checkUser:
+            return render_template("error.html", message="This username already exists.")
+
+        ###
+
+        # check user entered a password
+        elif not request.form.get("password"):
+            return render_template("error.html", message="Please enter a password.")
+
+        # check user entered a password confirmation
+        elif not request.form.get("passwordcheck"):
+            return render_template("error.html", message="Must confirm password.")
+
+        # hash password
+        password = sha256_crypt((str)(request.form.get("password")))
+
+        # query to insert new user
+        db.execute ("INSERT INTO users (username, password, email) VALUES (:username, :password, :email)",
+            {"username": request.form.get("username"), "password": password, "email": request.form.get("email")})
+
+        # commit changes to database
+        db.commit()
+
+        flash("Account Created!")
+
+        return redirect("/login")
+
+    # if user arrives at route via "GET"/by clicking link or redirect
+    else:
+        return render_template("register.html")
