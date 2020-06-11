@@ -69,46 +69,47 @@ def register():
 
     session.clear()
 
+    username = request.form.get("username")
+    password = request.form.get("password")
+    cpassword = request.form.get("passwordcheck")
+    email = request.form.get("email")
+
     # check that route is reached via "POST"/ user submitted form
     if request.method == "POST":
 
-        # check user entered a username
-        if not request.form.get("username"):
-            return render_template("error.html", message="Please enter a username.")
-
         # check for existing user #
         checkEmail = db.execute("SELECT * from users WHERE email=:email",
-            {"email":request.form.get("email")}).fetchone()
+            {"email":email}).fetchone()
 
         checkUser = db.execute("SELECT * from users WHERE username=:username",
-            {"username":request.form.get("username")}).fetchone()
+            {"username":username}).fetchone()
 
         if checkEmail:
             if checkUser:
-                return render_template("error.html", message="This email and username already exists.")
+                return render_template("register.html", message1="This username already exists.", message3="This email already exists.")
 
             else:
-                return render_template("error.html", message="This email already exists")
+                return render_template("register.html", message3="This email already exists")
 
         elif checkUser:
-            return render_template("error.html", message="This username already exists.")
+            return render_template("register.html", message1="This username already exists.")
 
         ###
 
-        # check user entered a password
-        elif not request.form.get("password"):
-            return render_template("error.html", message="Please enter a password.")
+        ## ensure password is at least 6 characters
+        elif len((str)(password)) < 5:
+            return render_template("register.html", message2="Please choose a password greater than 6 characters.")
 
-        # check user entered a password confirmation
-        elif not request.form.get("passwordcheck"):
-            return render_template("error.html", message="Must confirm password.")
+        ## ensure user confirms password correctly
+        elif password != cpassword:
+            return render_template("register.html", message2="Passwords don't match!")
 
         # hash password
-        password = sha256_crypt((str)(request.form.get("password")))
+        pw = sha256_crypt.hash((str)(password))
 
         # query to insert new user
         db.execute ("INSERT INTO users (username, password, email) VALUES (:username, :password, :email)",
-            {"username": request.form.get("username"), "password": password, "email": request.form.get("email")})
+            {"username": username, "password": pw, "email": email})
 
         # commit changes to database
         db.commit()
