@@ -123,5 +123,9 @@ def register():
         return render_template("register.html")
 
 @app.route("/logout")
+@login_required
 def logout():
-    return redirect("/login")
+
+    session.clear()
+
+    return render_template("login.html")
