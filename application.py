@@ -121,3 +121,7 @@ def register():
     # if user arrives at route via "GET"/by clicking link or redirect
     else:
         return render_template("register.html")
+
+@app.route("/logout")
+def logout():
+    return redirect("/login")
