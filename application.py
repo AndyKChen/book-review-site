@@ -39,21 +39,20 @@ def login():
     session.clear()
 
     username = request.form.get("email")
+    password = request.form.get("InputPassword")
 
     if request.method == "POST":
 
-        if not request.form.get("email"):
-            return render_template("error.html", message="Please provide login username or email.")
-
-        elif not request.form.get("InputPassword"):
-            return render_template("error.html", message="Please provide a password.")
-
-        rows = db.execute("SELECT * from users WHERE username=:username", {"username": username})
+        rows = db.execute("SELECT * from users WHERE username=:username OR email=:username",
+            {"username": username, "email":username})
 
         result = rows.fetchone()
 
         if result == None:
-            return render_template("error.html", message="Invalid username and/or password.")
+            return render_template("login.html", alert="User does not exist.")
+
+        elif not sha256_crypt.verify(password, result[3]):
+            return render_template("login.html", alert="Incorrect password.")
 
         session["user_id"] = result[0]
         session["username"] = result[1]
@@ -114,8 +113,6 @@ def register():
         # commit changes to database
         db.commit()
 
-        flash("Account Created!")
-
         return redirect("/login")
 
     # if user arrives at route via "GET"/by clicking link or redirect
@@ -129,3 +126,30 @@ def logout():
     session.clear()
 
     return render_template("login.html")
+
+@app.route("/search", methods=['GET', 'POST'])
+@login_required
+def search():
+
+    if request.method == "POST":
+        q = request.form.get("query")
+        query = "%" + request.form.get("query") + "%"
+
+        query = query.title()
+
+        rows = db.execute ("SELECT isbn, title, author, year FROM books WHERE \
+         isbn LIKE :query OR \
+         title LIKE :query OR \
+         author LIKE :query",
+         {"query":query})
+
+        if rows.rowcount == 0:
+            return render_template("search.html", message="No Books Found", count=" (0)")
+
+        books = rows.fetchall()
+        count = "(" + (str)(len(books)) + ")"
+
+        return render_template("search.html", books=books, query=q, count=count)
+
+    else:
+        return render_template("search.html")
