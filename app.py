@@ -58,7 +58,8 @@ def login():
         result = rows.fetchone()
 
         if result == None:
-            return render_template("login.html", alert="User does not exist.")
+            flashh("User does not exist.")
+            return render_template("login.html")
 
         elif not sha256_crypt.verify(password, result[3]):
             return render_template("login.html", alert="Incorrect password.")
@@ -94,23 +95,28 @@ def register():
 
         if checkEmail:
             if checkUser:
-                return render_template("register.html", message1="This username already exists.", message3="This email already exists.")
+                flash("This email and username already exists.")
+                return redirect("/register")
 
             else:
-                return render_template("register.html", message3="This email already exists")
+                flash("email already exists.")
+                return redirect("/register")
 
         elif checkUser:
-            return render_template("register.html", message1="This username already exists.")
+            flash("This username already exists.")
+            return redirect("/register")
 
         ###
 
         ## ensure password is at least 6 characters
         elif len((str)(password)) < 5:
-            return render_template("register.html", message2="Please choose a password greater than 6 characters.")
+            flash("Please choose a password greater than 6 characters.")
+            return redirect("/register")
 
         ## ensure user confirms password correctly
         elif password != cpassword:
-            return render_template("register.html", message2="Passwords don't match!")
+            flash("Passwords don't match!")
+            return redirect("/register")
 
         # hash password
         pw = sha256_crypt.hash((str)(password))
@@ -212,9 +218,11 @@ def search():
             {"query":query, "start":start, "stop":stop})
 
         else:
-            rows = db.execute ("SELECT isbn, title, author, year FROM books \
+            rows = db.execute ("SELECT books.isbn, books.title, books.author, books.year, reviews.rating FROM books \
+            LEFT JOIN reviews \
+            ON books.isbn = reviews.isbn \
             WHERE \
-            (isbn LIKE :query OR \
+            (books.isbn LIKE :query OR \
             title LIKE :query OR \
             author LIKE :query) AND \
             year >= :start AND \
