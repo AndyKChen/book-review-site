@@ -58,12 +58,10 @@ def login():
         result = rows.fetchone()
 
         if result == None:
-            flash("User does not exist.")
-            return redirect ("/login")
+            return render_template("login.html", alert="User does not exist.")
 
         elif not sha256_crypt.verify(password, result[3]):
-            flash("Incorrect password.")
-            return redirect ("/login")
+            return render_template("login.html", alert="Incorrect password.")
 
         session["user_id"] = result[0]
         session["username"] = result[2]
@@ -96,28 +94,23 @@ def register():
 
         if checkEmail:
             if checkUser:
-                flash("This email and username already exists.")
-                return redirect("/register")
+                return render_template("register.html", message1="This username already exists.", message3="This email already exists.")
 
             else:
-                flash("email already exists.")
-                return redirect("/register")
+                return render_template("register.html", message3="This email already exists")
 
         elif checkUser:
-            flash("This username already exists.")
-            return redirect("/register")
+            return render_template("register.html", message1="This username already exists.")
 
         ###
 
         ## ensure password is at least 6 characters
         elif len((str)(password)) < 5:
-            flash("Please choose a password greater than 6 characters.")
-            return redirect("/register")
+            return render_template("register.html", message2="Please choose a password greater than 6 characters.")
 
         ## ensure user confirms password correctly
         elif password != cpassword:
-            flash("Passwords don't match!")
-            return redirect("/register")
+            return render_template("register.html", message2="Passwords don't match!")
 
         # hash password
         pw = sha256_crypt.hash((str)(password))
