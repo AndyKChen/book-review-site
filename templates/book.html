@@ -1,0 +1,166 @@
+{% extends "layout.html" %}
+{% block title %}
+    Book
+{% endblock %}
+{% block content %}
+    <div class="book-container">
+        <div class="row">
+            <div class="col-sm">
+                <img src="http://covers.openlibrary.org/b/isbn/{{book_info[0]['isbn']}}-M.jpg" width="125px" alt="">
+            </div>
+            <div class="col-sm">
+                <h2>{{book_info[0]['title']}}</h2>
+                <h4>By: {{book_info[0]['author']}}</h4>
+                <h4>ISBN-10: {{book_info[0]['isbn']}}</h4>
+                <h4>Published {{book_info[0]['year']}}</h4>
+            </div>
+            <div class="col-sm">
+                <img src="../static/goodreads_logo.png" width="250px" alt="goodreads">
+                <h5>Average Goodreads Rating: {{book_info[1]['average_rating']}}</h5>
+                <h5>{{book_info[1]['reviews_count']}} total reviews</h5>
+            </div>
+        </div>
+    </div>
+    <div class="container pb-cmnt-container">
+        <form action="/book/{{book_info[0]['isbn']}}" method="post" name="review id="ratingForm">
+            <div id="status"></div>
+            <div class="row">
+                <div class="col-md-10">
+                    <div class="panel panel-info">
+                        <div class="panel-body rating">
+                            <textarea name="review" placeholder="Write your comment here!" class="pb-cmnt-textarea"></textarea>
+                            <input type="radio" id="star5" name="rating" value="5" /><label for="star5" title="Rocks!">5 stars</label>
+                            <input type="radio" id="star4" name="rating" value="4" /><label for="star4" title="Pretty good">4 stars</label>
+                            <input type="radio" id="star3" name="rating" value="3" /><label for="star3" title="Meh">3 stars</label>
+                            <input type="radio" id="star2" name="rating" value="2" /><label for="star2" title="Kinda bad">2 stars</label>
+                            <input type="radio" id="star1" name="rating" value="1" /><label for="star1" title="Sucks big time">1 star</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <input type="text" name="name" placeholder="Enter Name" class="pb-cmnt-textarea" style="height:30px" required><br>
+                    <div class="form-inline clearfix">
+                        <button class="btn btn-dark submit clearfix" id="btn" type="submit" style="text-align: center">Share</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {% for review in reviews %}
+    {% set rating = review["rating"] | int %}
+        <div class="review">
+            <h6>{{review["date"]}} | {{review["name"]}} commented: </h6>
+            <p>{{review["review"]}}</p>
+            {% for i in range(rating) %}
+                <i class="fa fa-star" aria-hidden="true"></i>
+            {% endfor %}
+        </div>
+    {% endfor %}
+
+    <style>
+    .pb-cmnt-container {
+    font-family: Lato;
+    margin-top: 50px;
+    }
+    .pb-cmnt-textarea {
+    resize: none;
+    padding: 20px;
+    height: 130px;
+    width: 100%;
+    border: 1px solid #F2F2F2;
+    margin-bottom: 10px;
+    }
+    h4 {
+    text-align: center;
+    font-weight: normal;
+    }
+    .book-container {
+    text-align: center;
+    }
+    .review {
+    border-radius: 25px;
+    border: 2px solid #0066cc;
+    padding: 20px;
+    min-height: 75px;
+    width: 100%;
+    margin-top: 25px;
+    }
+
+    #btn {
+    width: 150px;
+    }
+    .rating {
+    float:left;
+    width:100%;
+    }
+    /* :not(:checked) is a filter, so that browsers that don’t support :checked don’t
+    follow these rules. Every browser that supports :checked also supports :not(), so
+    it doesn’t make the test unnecessarily selective */
+    .rating:not(:checked) > input {
+    position:absolute;
+    top:-9999px;
+    clip:rect(0,0,0,0);
+    }
+    .rating:not(:checked) > label {
+    float:right;
+    width:1em;
+    padding:0 .1em;
+    overflow:hidden;
+    white-space:nowrap;
+    cursor:pointer;
+    font-size:200%;
+    line-height:1.2;
+    color:#ddd;
+    text-shadow:1px 1px #bbb, 2px 2px #666, .1em .1em .2em rgba(0,0,0,.5);
+    }
+    .rating:not(:checked) > label:before {
+    content: '★ ';
+    }
+    .rating > input:checked ~ label {
+    color: #f70;
+    text-shadow:1px 1px #c60, 2px 2px #940, .1em .1em .2em rgba(0,0,0,.5);
+    }
+    .rating:not(:checked) > label:hover,
+    .rating:not(:checked) > label:hover ~ label {
+    color: gold;
+    text-shadow:1px 1px goldenrod, 2px 2px #B57340, .1em .1em .2em rgba(0,0,0,.5);
+    }
+    .rating > input:checked + label:hover,
+    .rating > input:checked + label:hover ~ label,
+    .rating > input:checked ~ label:hover,
+    .rating > input:checked ~ label:hover ~ label,
+    .rating > label:hover ~ input:checked ~ label {
+    color: #ea0;
+    text-shadow:1px 1px goldenrod, 2px 2px #B57340, .1em .1em .2em rgba(0,0,0,.5);
+    }
+    .rating > label:active {
+    position:relative;
+    top:2px;
+    left:2px;
+    }
+    /* end of Lea's code */
+    /*
+    * Clearfix from html5 boilerplate
+    */
+    .clearfix:before,
+    .clearfix:after {
+    content: " "; /* 1 */
+    display: table; /* 2 */
+    }
+    .clearfix:after {
+    clear: both;
+    }
+    /*
+    * For IE 6/7 only
+    * Include this rule to trigger hasLayout and contain floats.
+    */
+    .clearfix {
+    *zoom: 1;
+    }
+    /* my stuff */
+    #status, button {
+    margin: 20px 0;
+    }
+    </style>
+{% endblock %}
