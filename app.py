@@ -58,11 +58,12 @@ def login():
         result = rows.fetchone()
 
         if result == None:
-            flashh("User does not exist.")
-            return render_template("login.html")
+            flash("User does not exist.")
+            return redirect ("/login")
 
         elif not sha256_crypt.verify(password, result[3]):
-            return render_template("login.html", alert="Incorrect password.")
+            flash("Incorrect password.")
+            return redirect ("/login")
 
         session["user_id"] = result[0]
         session["username"] = result[2]
