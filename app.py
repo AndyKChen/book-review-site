@@ -32,12 +32,12 @@ db = scoped_session(sessionmaker(bind=engine))
 def index():
 
     # find all reviews
-    rows = db.execute("SELECT review, name, date, rating FROM reviews WHERE username=:username ORDER BY date LIMIT 5", {"username":session["username"]})
-
-    if rows.fetchone() == None:
-        return render_template("index.html", username=session["username"], message="No reviews written. Write one today!")
+    rows = db.execute("SELECT review, name, date, rating, isbn  FROM reviews WHERE username=:username ORDER BY date", {"username":session["username"]})
 
     reviews = rows.fetchall()
+
+    if reviews == []:
+        return render_template("index.html", username=session["username"], message="No reviews written. Write one today!")
 
     return render_template("index.html", username=session["username"], reviews=reviews)
 
