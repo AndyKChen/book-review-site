@@ -74,14 +74,6 @@
                                                     <th scope="row"><a href="/book/{{book['isbn']}}" class="stretched-link">{{loop.index}}</a></th>
                                                     <td class="image"><img src="http://covers.openlibrary.org/b/isbn/{{book['isbn']}}-M.jpg" width="100px" alt="Book Cover Unavailable"></td>
                                                     <td class="product"><strong>{{book["title"]}}</strong><br>{{book["isbn"]}}<br>By: {{book["author"]}}</td>
-                                                    <td>
-                                                        {% if book["rating"] %}
-                                                            {% set rating = book["rating"] | int %}
-                                                            {% for i in range(rating) %}
-                                                                <i class="fa fa-star" aria-hidden="true"></i>
-                                                            {% endfor %}
-                                                        {% endif %}
-                                                    </td>
                                                     <td class="price text-right">{{book["year"]}}</td>
                                                 </tr>
                                             </tbody>

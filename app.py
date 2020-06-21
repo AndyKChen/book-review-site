@@ -5,6 +5,7 @@ from flask import Flask, session, flash, redirect, render_template, request
 from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.sql import func
 from passlib.hash import sha256_crypt
 from datetime import datetime
 
@@ -32,7 +33,7 @@ db = scoped_session(sessionmaker(bind=engine))
 def index():
 
     # find all reviews
-    rows = db.execute("SELECT review, name, date, rating, isbn  FROM reviews WHERE username=:username ORDER BY date", {"username":session["username"]})
+    rows = db.execute("SELECT review, name, date, rating, isbn  FROM reviews WHERE username=:username ORDER BY date LIMIT 5", {"username":session["username"]})
 
     reviews = rows.fetchall()
 
@@ -40,7 +41,6 @@ def index():
         return render_template("index.html", username=session["username"], message="No reviews written. Write one today!")
 
     return render_template("index.html", username=session["username"], reviews=reviews)
-
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -142,7 +142,7 @@ def search():
 
     if request.method == "POST":
 
-        q = request.form.get("query")
+        q = '"' + request.form.get("query") + '"'
 
         query = "%" + request.form.get("query") + "%"
 
@@ -160,9 +160,9 @@ def search():
 
 
         if request.form.get("sort") == "author":
-            rows = db.execute ("SELECT books.isbn, books.title, books.author, books.year, reviews.rating FROM books \
-            LEFT JOIN reviews \
-            ON books.isbn = reviews.isbn \
+            rows = db.execute ("SELECT books.isbn, books.title, books.author, books.year, reviews_avg.average FROM books \
+            LEFT JOIN reviews_avg \
+            ON books.isbn = reviews_avg.isbn \
             WHERE \
             (books.isbn LIKE :query OR \
             title LIKE :query OR \
@@ -173,22 +173,22 @@ def search():
             {"query":query, "start":start, "stop":stop})
 
         elif request.form.get("sort") == "rating":
-            rows = db.execute ("SELECT books.isbn, books.title, books.author, books.year, reviews.rating FROM books \
-            INNER JOIN reviews \
-            ON books.isbn = reviews.isbn \
+            rows = db.execute ("SELECT books.isbn, books.title, books.author, books.year, reviews_avg.average FROM books \
+            RIGHT JOIN reviews_avg \
+            ON books.isbn = reviews_avg.isbn \
             WHERE \
             (books.isbn LIKE :query OR \
             title LIKE :query OR \
             author LIKE :query) AND \
             year >= :start AND \
             year <= :stop \
-            ORDER BY rating DESC",
+            ORDER BY reviews_avg.average DESC",
             {"query":query, "start":start, "stop":stop})
 
         elif request.form.get("sort") == "title":
-            rows = db.execute ("SELECT books.isbn, books.title, books.author, books.year, reviews.rating FROM books \
-            LEFT JOIN reviews \
-            ON books.isbn = reviews.isbn \
+            rows = db.execute ("SELECT books.isbn, books.title, books.author, books.year, reviews_avg.average FROM books \
+            LEFT JOIN reviews_avg \
+            ON books.isbn = reviews_avg.isbn \
             WHERE \
             (books.isbn LIKE :query OR \
             title LIKE :query OR \
@@ -199,9 +199,9 @@ def search():
             {"query":query, "start":start, "stop":stop})
 
         elif request.form.get("sort") == "year":
-            rows = db.execute ("SELECT books.isbn, books.title, books.author, books.year, reviews.rating FROM books \
-            LEFT JOIN reviews \
-            ON books.isbn = reviews.isbn \
+            rows = db.execute ("SELECT books.isbn, books.title, books.author, books.year, reviews_avg.average FROM books \
+            LEFT JOIN reviews_avg \
+            ON books.isbn = reviews_avg.isbn \
             WHERE \
             (books.isbn LIKE :query OR \
             title LIKE :query OR \
@@ -212,9 +212,9 @@ def search():
             {"query":query, "start":start, "stop":stop})
 
         else:
-            rows = db.execute ("SELECT books.isbn, books.title, books.author, books.year, reviews.rating FROM books \
-            LEFT JOIN reviews \
-            ON books.isbn = reviews.isbn \
+            rows = db.execute ("SELECT books.isbn, books.title, books.author, books.year, reviews_avg.average FROM books \
+            LEFT JOIN reviews_avg \
+            ON books.isbn = reviews_avg.isbn \
             WHERE \
             (books.isbn LIKE :query OR \
             title LIKE :query OR \
@@ -223,16 +223,18 @@ def search():
             year <= :stop",
             {"query":query, "start":start, "stop":stop})
 
+
         if rows.rowcount == 0:
             return render_template("search.html", query=q, f=request.form.get("from-date"), t=request.form.get("to-date"), prompt="No results matching", message="(0)", username=session["username"])
 
         books = rows.fetchall()
+
         count = "(" + (str)(len(books)) + ")"
 
         return render_template("search.html", books=books, count=count, query=q, f=request.form.get("from-date"), t=request.form.get("to-date"), prompt="Showing all results matching", username=session["username"])
 
     else:
-        return render_template("search.html", username=session["username"])
+        return render_template("search.html", username=session["username"], prompt="ex. 0060256656, Stephen King, The Lorax")
 
 
 @app.route("/book/<isbn>", methods=['GET', 'POST'])
@@ -243,14 +245,15 @@ def book(isbn):
         review = request.form.get("review")
         name = request.form.get("name")
         username = session["username"]
+
+        # if user does not submit rating, assume rating is 0
         if request.form.get("rating") == None:
             rating = 0
         else:
             rating = (int)(request.form.get("rating"))
 
+       # check if user already submitted a review
         row = db.execute("SELECT * FROM reviews WHERE username=:username AND isbn=:isbn", {"username":username, "isbn":isbn})
-
-        # check if user already submitted a review
         if row.fetchone():
             flash("You have already reviewed this book!")
             return redirect("/book/" + isbn)
@@ -258,14 +261,30 @@ def book(isbn):
         # insert review into database
         db.execute("INSERT INTO reviews (isbn, review, rating, username, name, date) VALUES (:isbn, :review, :rating, :username, :name, :date)",
             {"isbn":isbn, "review":review, "rating":rating, "username":username, "name":name, "date":datetime.date(datetime.now())})
-
         db.commit()
+
+        # find average of ratings for a single isbn
+        row = db.execute("SELECT ROUND(AVG(rating)::numeric,1) FROM reviews WHERE isbn=:isbn", {"isbn":isbn})
+        res = row.fetchone()
+        average=res[0]
+
+        # check for record of isbn in reviews_avg table
+        row = db.execute("SELECT average FROM reviews_avg WHERE isbn=:isbn", {"isbn":isbn})
+        check = row.fetchone()
+
+        if check == None:
+            db.execute("INSERT INTO reviews_avg (isbn, average) VALUES (:isbn, :average)", {"isbn":isbn, "average":average})
+            db.commit()
+
+        else:
+            db.execute("UPDATE reviews_avg SET average=:average WHERE isbn=:isbn", {"isbn":isbn, "average":average})
+            db.commit()
 
         return redirect("/book/" + isbn)
 
     else:
         # find all reviews
-        rows = db.execute("SELECT review, name, date, rating FROM reviews WHERE isbn=:isbn", {"isbn":isbn})
+        rows = db.execute("SELECT username, review, name, date, rating FROM reviews WHERE isbn=:isbn ORDER BY date", {"isbn":isbn})
         reviews = rows.fetchall()
 
         # find book info from database given an isbn

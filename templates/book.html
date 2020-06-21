@@ -40,7 +40,7 @@
                 <div class="col-md-2">
                     <input type="text" name="name" placeholder="Enter Name" class="pb-cmnt-textarea" style="height:30px" required><br>
                     <div class="form-inline clearfix">
-                        <button class="btn btn-dark submit clearfix" id="btn" type="submit" style="text-align: center">Share</button>
+                        <button class="btn btn-primary submit clearfix" id="btn" type="submit" style="text-align: center">Share</button>
                     </div>
                 </div>
             </div>
@@ -50,10 +50,13 @@
     {% for review in reviews %}
     {% set rating = review["rating"] | int %}
         <div class="review">
-            <h6>{{review["date"]}} | {{review["name"]}} commented: </h6>
+            <h6>{{review["date"]}} | {{review["name"]}} ({{review["username"]}}) commented: </h6>
             <p>{{review["review"]}}</p>
             {% for i in range(rating) %}
                 <i class="fa fa-star" aria-hidden="true"></i>
+            {% endfor %}
+            {% for j in range(5 - rating) %}
+                <i class="fa fa-star-o" aria-hidden="true"></i>
             {% endfor %}
         </div>
     {% endfor %}
