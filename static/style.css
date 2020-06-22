@@ -139,3 +139,7 @@ main .form-control
     #status, button {
     margin: 20px 0;
     }
+
+.padding {
+    margin-top: 50px;
+    }

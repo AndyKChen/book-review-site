@@ -1,32 +1,33 @@
 {% extends "layout.html" %}
-
 {% block title %}
     Register
 {% endblock %}
-
 {% block content %}
-
-    <h3> Register For A Free Account </h3>
-    <form action="/register" method="post">
-
-        <div class="form-group">
-            <input type="text" autofocus class="form-control" placeholder="Username" id="username" name="username" aria-describedby="error" required/>
-            <small id="error" class="form-text" style="color:red">{{message1}} </small>
+    <div class="row">
+        <div class="col-sm">
+            <h3> Register For A Free Account </h3>
+            <form action="/register" method="post">
+                <div class="form-group">
+                    <input type="text" autofocus class="form-control" placeholder="Username" id="username" name="username" aria-describedby="error" required/>
+                    <small id="error" class="form-text" style="color:red">{{message1}} </small>
+                </div>
+                <div class="form-group">
+                    <input type="password" class="form-control" placeholder="Password" id="password" name="password" required/>
+                </div>
+                <div class="form-group">
+                    <input type="password" class="form-control" placeholder="Confirm" id="passwordcheck" name="passwordcheck" aria-describedby="error" required/>
+                    <small id="error" class="form-text" style="color:red">{{message2}}</small>
+                </div>
+                <div class="form-group">
+                    <input type="email" class="form-control" placeholder="Email" name="email" aria-describedby="emailHelp" required/>
+                    <small id="emailHelp" class="form-text text-muted">We will not use your email for promotional purposes</small>
+                    <small id="emailHelp" class="form-text" style="color:red">{{message3}}</small>
+                </div>
+                <button type="submit" class="btn btn-primary">Register!</button>
+            </form>
         </div>
-        <div class="form-group">
-            <input type="password" class="form-control" placeholder="Password" id="password" name="password" required/>
+        <div class="col-lg">
+            <img src="../static/register.png" width=100%>
         </div>
-        <div class="form-group">
-            <input type="password" class="form-control" placeholder="Confirm" id="passwordcheck" name="passwordcheck" aria-describedby="error" required/>
-            <small id="error" class="form-text" style="color:red">{{message2}}</small>
-        </div>
-        <div class="form-group">
-            <input type="email" class="form-control" placeholder="Email" name="email" aria-describedby="emailHelp" required/>
-            <small id="emailHelp" class="form-text text-muted">We will not use your email for promotional purposes</small>
-            <small id="emailHelp" class="form-text" style="color:red">{{message3}}</small>
-        </div>
-            <button type="submit" class="btn btn-primary">Register!</button>
-        </form>
-
-
+    </div>
 {% endblock %}

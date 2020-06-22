@@ -1,19 +1,27 @@
 {% extends "layout.html" %}
-
 {% block title %}
     Login
 {% endblock %}
-
 {% block content %}
-    <h5>{{alert}}</h5>
-    <h3>Login or <a href="/register">create an account</a></h3>
-    <form action="/login" method="post">
-        <div class="form-group">
-            <input type="text" class="form-control" name="email"  placeholder="Username or email" required>
+    <div class="row">
+        <div class="col-sm">
+            <img src=../static/bear.png width=100%>
         </div>
-        <div class="form-group">
-            <input type="password" class="form-control" name="InputPassword" placeholder="Enter Password" required>
+        <div class="col-lg">
+            <h1 style= "color: #336699">Welcome to My Bookshelf! </h1><br>
+            <h5>Search our database of over 5000 books, discover user written reviews, and write about your favourite books.</h5>
+            <br>
+            <h5>{{alert}}</h5>
+            <h3>Login or <a href="/register">create an account</a></h3><br>
+            <form action="/login" method="post">
+                <div class="form-group">
+                    <input type="text" class="form-control" name="email"  placeholder="Username or email" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" class="form-control" name="InputPassword" placeholder="Enter Password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Login</button>
+            </form>
         </div>
-        <button type="submit" class="btn btn-primary">Sign in</button>
-    </form>
+    </div>
 {% endblock %}
