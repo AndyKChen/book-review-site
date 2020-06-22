@@ -67,10 +67,10 @@
                                     <div class="table-responsive">
                                         <table class="table table-hover">
                                             <tbody><tr style="transform: rotate(0);">
-                                                    <th scope="row"><a href="/book/{{book['isbn']}}" class="stretched-link">{{loop.index}}</a></th>
-                                                    <td class="image"><img src="http://covers.openlibrary.org/b/isbn/{{book['isbn']}}-M.jpg" width="100px" alt="Book Cover Unavailable"></td>
-                                                    <td class="product"><strong>{{book["title"]}}</strong><br>{{book["isbn"]}}<br>By: {{book["author"]}}</td>
-                                                    <td class="price text-right">{{book["year"]}}</td>
+                                                    <th scope="row" style="width:10%"><a href="/book/{{book['isbn']}}" class="stretched-link">{{loop.index}}</a></th>
+                                                    <td style="text-align:left; width:30%"><img src="http://covers.openlibrary.org/b/isbn/{{book['isbn']}}-M.jpg" width="100px" alt="Book Cover Unavailable"></td>
+                                                    <td style="text-align:left; width:50%"><strong>{{book["title"]}}</strong><br>{{book["isbn"]}}<br>By: {{book["author"]}}</td>
+                                                    <td style="text-align:right">{{book["year"]}}</td>
                                                 </tr>
                                             </tbody>
                                         </table>
