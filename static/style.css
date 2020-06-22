@@ -29,10 +29,6 @@ main .form-control
     border: 1px solid #F2F2F2;
     margin-bottom: 10px;
     }
-    h4 {
-    text-align: center;
-    font-weight: normal;
-    }
 
 .book-container {
     text-align: center;
@@ -45,10 +41,6 @@ main .form-control
     min-height: 75px;
     width: 100%;
     margin-top: 25px;
-    }
-
-#btn {
-    width: 150px;
     }
 
 .rating {
