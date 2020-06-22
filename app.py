@@ -1,7 +1,7 @@
 import os
 import requests
 
-from flask import Flask, session, flash, redirect, render_template, request
+from flask import Flask, session, flash, redirect, render_template, request, jsonify
 from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -37,6 +37,7 @@ def index():
 
     reviews = rows.fetchall()
 
+    # check if user has written any reviews
     if reviews == []:
         return render_template("index.html", username=session["username"], message="No reviews written. Write one today!")
 
@@ -45,11 +46,14 @@ def index():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+
     session.clear()
 
+    # get username and password entered by user
     username = request.form.get("email")
     password = request.form.get("InputPassword")
 
+    # if user enters info via POST, check for correct credentials and redirect user accordingly
     if request.method == "POST":
 
         rows = db.execute("SELECT * from users WHERE username=:username OR email=:username",
@@ -77,6 +81,7 @@ def register():
 
     session.clear()
 
+    # get user entered info for sign up
     username = request.form.get("username")
     password = request.form.get("password")
     cpassword = request.form.get("passwordcheck")
@@ -85,7 +90,7 @@ def register():
     # check that route is reached via "POST"/ user submitted form
     if request.method == "POST":
 
-        # check for existing user #
+        # check for existing user
         checkEmail = db.execute("SELECT * from users WHERE email=:email",
             {"email":email}).fetchone()
 
@@ -104,11 +109,11 @@ def register():
 
         ###
 
-        ## ensure password is at least 6 characters
+        # ensure password is at least 6 characters
         elif len((str)(password)) < 5:
             return render_template("register.html", message2="Please choose a password greater than 6 characters.")
 
-        ## ensure user confirms password correctly
+        # ensure user confirms password correctly
         elif password != cpassword:
             return render_template("register.html", message2="Passwords don't match!")
 
@@ -140,14 +145,19 @@ def logout():
 @login_required
 def search():
 
+    # check that route is reached via "POST"/ user submitted form
     if request.method == "POST":
 
+        # formatted for search message
         q = '"' + request.form.get("query") + '"'
 
+        # format to find similar results to search
         query = "%" + request.form.get("query") + "%"
 
+        # capitalize first letter of each word
         query = query.title()
 
+        # handle date filter
         if not request.form.get("from-date"):
             start = 0
         else:
@@ -158,7 +168,7 @@ def search():
         else:
             stop = request.form.get("to-date")
 
-
+        # FILTERS #
         if request.form.get("sort") == "author":
             rows = db.execute ("SELECT books.isbn, books.title, books.author, books.year, reviews_avg.average FROM books \
             LEFT JOIN reviews_avg \
@@ -223,12 +233,13 @@ def search():
             year <= :stop",
             {"query":query, "start":start, "stop":stop})
 
-
+        # check if any results
         if rows.rowcount == 0:
             return render_template("search.html", query=q, f=request.form.get("from-date"), t=request.form.get("to-date"), prompt="No results matching", message="(0)", username=session["username"])
 
         books = rows.fetchall()
 
+        # find number of results returned
         count = "(" + (str)(len(books)) + ")"
 
         return render_template("search.html", books=books, count=count, query=q, f=request.form.get("from-date"), t=request.form.get("to-date"), prompt="Showing all results matching", username=session["username"])
@@ -240,8 +251,10 @@ def search():
 @app.route("/book/<isbn>", methods=['GET', 'POST'])
 def book(isbn):
 
+    # check that route is reached via "POST"/ user submitted form
     if request.method == "POST":
 
+        # get review info from user
         review = request.form.get("review")
         name = request.form.get("name")
         username = session["username"]
@@ -272,10 +285,12 @@ def book(isbn):
         row = db.execute("SELECT average FROM reviews_avg WHERE isbn=:isbn", {"isbn":isbn})
         check = row.fetchone()
 
+        # if no review, add new entry in reviews_avg
         if check == None:
             db.execute("INSERT INTO reviews_avg (isbn, average) VALUES (:isbn, :average)", {"isbn":isbn, "average":average})
             db.commit()
 
+        # if a rating for the book already exists, update current value to new average rating
         else:
             db.execute("UPDATE reviews_avg SET average=:average WHERE isbn=:isbn", {"isbn":isbn, "average":average})
             db.commit()
@@ -293,7 +308,6 @@ def book(isbn):
         book_info = row.fetchall()
 
         """ Access Goodreads API and get review data"""
-        # key: LAkytzNoQdcAmCjbO3Dhw
         # secret: 2cSNox6prt16u8LWKGcozHUYeZovs1LW3Zt8rrhbcc
         key = "LAkytzNoQdcAmCjbO3Dhw"
         query = requests.get("https://www.goodreads.com/book/review_counts.json", params={'key':key, 'isbns':isbn})
@@ -310,3 +324,30 @@ def book(isbn):
         return render_template("book.html", book_info=book_info, reviews=reviews, username=session["username"])
 
 
+@app.route("/api/<isbn>", methods=["GET"])
+def api(isbn):
+
+    # get title, author, year from books table for isbn requested
+    query = db.execute("SELECT title, author, year FROM books WHERE isbn=:isbn", {"isbn":isbn})
+    result = query.fetchone()
+
+    title = result["title"]
+    author = result["author"]
+    year = result["year"]
+
+    """ Access Goodreads API and get review data"""
+        # secret: 2cSNox6prt16u8LWKGcozHUYeZovs1LW3Zt8rrhbcc
+
+    key = "LAkytzNoQdcAmCjbO3Dhw"
+    query = requests.get("https://www.goodreads.com/book/review_counts.json", params={'key':key, 'isbns':isbn})
+
+    response = query.json()
+
+    response = response['books'][0]
+
+    # get count and score from json API result
+    count = response["reviews_count"]
+    score = response["average_rating"]
+
+    # jsonify converts data to .json format
+    return jsonify(isbn=isbn, title = result["title"], author = result["author"], year = result["year"], count = response["reviews_count"], score = response["average_rating"])
