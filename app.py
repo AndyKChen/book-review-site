@@ -33,7 +33,7 @@ db = scoped_session(sessionmaker(bind=engine))
 def index():
 
     # find all reviews
-    rows = db.execute("SELECT review, name, date, rating, isbn  FROM reviews WHERE username=:username ORDER BY date LIMIT 5", {"username":session["username"]})
+    rows = db.execute("SELECT review, date, rating, isbn  FROM reviews WHERE username=:username ORDER BY date LIMIT 5", {"username":session["username"]})
 
     reviews = rows.fetchall()
 
@@ -330,6 +330,9 @@ def api(isbn):
     # get title, author, year from books table for isbn requested
     query = db.execute("SELECT title, author, year FROM books WHERE isbn=:isbn", {"isbn":isbn})
     result = query.fetchone()
+
+    if result is None:
+        return jsonify(error="Invalid ISBN")
 
     title = result["title"]
     author = result["author"]
