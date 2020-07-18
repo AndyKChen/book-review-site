@@ -4,8 +4,8 @@ Allows user to browse a database of over 5000 books, read user reviews, and writ
 
 <p float="left">
   <p>
-  <img src=static/demo/landingpage.jpg align=top width=60%>
-    <img src=static/demo/booksearch.jpg width=60%>
+  <img src=static/demo/landingpage.jpg align=top width=50%>
+    <img src=static/demo/booksearch.jpg width=50%>
    </p>
   <img src=static/demo/demo-mobile-bookshelf.gif width=300>
   
