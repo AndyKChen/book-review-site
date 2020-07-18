@@ -3,10 +3,10 @@
 Allows user to browse a database of over 5000 books, read user reviews, and write about their favourite books. Users can create an account and quickly view their recent reviews, along with a random reading quote and a time widget on their personal dashboard.
 
 <p float="left">
-  <img src=static/demo/landing.jpg width=60%>
+  <img src=static/demo/landing.jpg width=60% align=top>
   <img src=static/demo/demo-mobile-bookshelf.gif width=300>
+  <img src=static/demo/booksearch.jpg width=60%>
 </p>
-<img src=static/demo/booksearch.jpg>
 
 
 
