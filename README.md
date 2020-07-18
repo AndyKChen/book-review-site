@@ -2,7 +2,7 @@
 
 Allows user to browse a database of over 5000 books, read user reviews, and write about their favourite books. Users can create an account and quickly view their recent reviews, along with a random reading quote and a time widget on their personal dashboard.
 
-<img src=static/demo/landing.jpg>
+<img src=static/demo/landing.jpg><img src=static/demo/demo-mobile-bookshelf.gif>
 
 When searching books, results can be filtered by author name, book title, user rating, and publish date. An API also allows any site visitor to quickly gain access to the database and Goodreads API, by making a GET request to the website's /api/<isbn> route that returns a JSON response containing the book’s title, author, publication date, ISBN number, review count, and average score.
 
